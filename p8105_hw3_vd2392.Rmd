@@ -243,7 +243,7 @@ This data is from the NOAA National Climatic Data Center, where we have `r nrow(
 knitr::kable(head(noaa),"simple", caption = "Source: NOAA")
 ```
 
-```{r, echo=TRUE, message=FALSE}
+```{r, snowfall, echo=TRUE, message=FALSE}
 
 snowfall = noaa %>% 
   group_by(`snow_(mm)`) %>% 
@@ -255,7 +255,7 @@ snowfall = noaa %>%
 As we can see from the table above, the most common observations for snowfall were either 0 or NA indicating that there was no precipitation on those days, which makes sense that given in New York City typically only experiences snow during the winters (a small subset of the data). 
 
 ### Max Temperatures: January vs. July
-```{r, echo=TRUE, message=FALSE}
+```{r, annual_tmax, echo=TRUE, message=FALSE}
 
 january_v_july =
   noaa %>%
@@ -288,7 +288,7 @@ In general, it seems like there has been a steady incline in average temperature
 
 ### Max and Min Temperatures Over Time
 
-```{r, echo=TRUE, message=FALSE}
+```{r, annual_temp, echo=TRUE, message=FALSE}
 
 tmax =
   noaa %>%
@@ -330,7 +330,7 @@ tmin =
 ```
 On first sight, it seems that the average max and min temperatures over time follow the same historical fluctuations. Although the data itself is different, for example, the minimum temperature ranges from 5 to 25 degrees celsius, the max temperature is much higher. Interestingly though, the pattern of a steep decline over the more recent years around 2010 indicate a dramatic change in temperature in NY that must be further investigated. 
 
-```{r, echo=TRUE, message=FALSE}
+```{r, annual_snow, echo=TRUE, message=FALSE}
 snow = 
   noaa %>% 
   select(id, year, month, day, `snow_(mm)`) %>%
