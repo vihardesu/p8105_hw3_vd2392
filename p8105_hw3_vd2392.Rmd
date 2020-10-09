@@ -9,6 +9,7 @@ output: github_document
 ```{r imports, echo=FALSE, message=FALSE}
 library(tidyverse)
 library(p8105.datasets)
+library(ggridges)
 data("instacart")
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -35,8 +36,6 @@ There are `r instacart %>% distinct(aisle) %>% count()` distinct aisles, with th
 ```{r, iaisles_table, echo=FALSE, message=FALSE}
 knitr::kable(head(aisles),"simple", caption = "Source: Instacart")
 ```
-
-
 
 As we can see in the graph above, two most popular categories by far are the fresh fruits and fresh vegetables. The other popular categories include such items as milk, yogurt and sparkling water. In general though, most aisles do trend toward the same amount of ordered items well below 40,000 in total.
 ```{r, echo=TRUE, message=FALSE}
@@ -85,44 +84,103 @@ instacart %>%
 
 ```
 
+## Problem 2
+
+-pivot_longer activity data
+-split day into weekend and weekdays
 
 
+```{r, accel_data, echo=FALSE, message=TRUE}
 
-```{r, echo=TRUE, message=FALSE}
-
-library(ggridges)
-weather_df = 
-  rnoaa::meteo_pull_monitors(
-    c("USW00094728", "USC00519397", "USS0023B17S"),
-    var = c("PRCP", "TMIN", "TMAX"), 
-    date_min = "2017-01-01",
-    date_max = "2017-12-31") %>%
+accel_data = 
+  read_csv("./data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity_minute",
+    names_prefix = "activity_",
+    values_to = "activity_level"
+  ) %>% 
   mutate(
-    name = recode(
-      id, 
-      USW00094728 = "CentralPark_NY", 
-      USC00519397 = "Waikiki_HA",
-      USS0023B17S = "Waterhole_WA"),
-    tmin = tmin / 10,
-    tmax = tmax / 10) %>%
-  select(name, id, everything())
-
-head(weather_df)
+    weekday = case_when(
+      day == "Monday" | day == "Tuesday" | day == "Wednesday" | day == "Thursday" | day == "Friday" ~ TRUE,
+      day == "Saturday" | day =="Sunday" ~ FALSE
+    )
+  ) %>% 
+  select(
+    day_id,
+    week_id = week,
+    weekday,
+    day,
+    minute = activity_minute,
+    everything()
+  )
 
 ```
 
-```{r, echo=TRUE, message=FALSE}
-ggplot(weather_df, aes(x = tmin, y = tmax, color = name)) + 
+As mentioned in the homework assignment, this dataset contains five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). This dataset contains activity level data of this male on one minute intervals for all 5 weeks that his experiment was conducted. There are `r nrow(accel_data)` rows of data, which represent entries for "activity_level" temporally categorized by columns "day_id", "week_id", "weekday", "day" and "minute". 
+
+
+```{r}
+
+accel_data_totals = 
+  accel_data %>% 
+  group_by(day_id, week_id, day, weekday) %>% 
+  summarize(activity_total = sum(activity_level)) %>% 
+  arrange(desc(activity_total))
+
+week_plot = 
+  accel_data_totals %>% 
+  ggplot(aes(x = day, y = activity_total)) + 
+  geom_point() +
+  geom_boxplot() +
+  labs(
+    title = "Activity by Day of the Week",
+    x = "Day of the Week (n = 5/day)",
+    y = "Activity Level",
+    caption = "Activity Level Variability"
+  )
+week_plot
+
+```
+
+From the results of the graph, we can see that there is an observable difference in this individual's activity variability on Saturdays. Monday's tended to be the high activity level day, while on average the individual tended to have an activity level around 4e+05. What's also consistent is that the individual's activity level mirrored a sort of wave like plot, around his average activity level over time. 
+
+```{r}
+daily_plot = 
+  accel_data_totals %>% 
+  ggplot(aes(x = day_id, y = activity_total)) + 
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Activity throughout Study Interval",
+    x = "Days of Study (n = 35)",
+    y = "Activity Level",
+    caption = "Activity Level Over Time"
+  )
+
+
+daily_plot
+```
+
+
+-35 lines
+-one line one day
+-x-axis is 1440 minutes
+-y-axis is activity level
+
+```{r}
+
+
+
+plot = 
+  accel_data %>% 
+  group_by(day_id) %>% 
+  ggplot(aes(x = minute, y = activity_level, color = day)) + 
   geom_point(alpha = .5) +
-  geom_smooth(se = FALSE) + 
-  facet_grid(. ~ name)
-```
-
-```{r, echo=TRUE, message=FALSE}
+  theme(legend.position = "bottom")
+plot
 
 
-
-ggplot(weather_df, aes(x = tmax)) + 
-  geom_histogram()
 ```
 

@@ -1,0 +1,43 @@
+---
+title: "testing"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+library(ggridges)
+weather_df =  
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10,
+    month = lubridate::floor_date(date, unit = "month")) %>%
+  select(name, id, everything())
+head(weather_df)
+```
+
+## R Markdown
+```{r}
+
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(n_obs = n())
+
+head(weather_df)
+#Group_by is condensing rows by categorical variables and you can do them by multiple columns
+#summarize creates new columns with summaries of "grouped" data
+
+
+```
+
+
